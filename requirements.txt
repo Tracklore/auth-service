@@ -6,3 +6,4 @@ passlib[bcrypt]
 sqlalchemy
 databases[asyncpg]
 python-dotenv
+alembic
