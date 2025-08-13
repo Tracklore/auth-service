@@ -1,0 +1,1 @@
+# Authentication logic (hashing, JWT, OAuth, etc.)
