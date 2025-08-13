@@ -50,3 +50,4 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     asyncio.run(run_migrations_online())
+# This code sets up Alembic for database migrations, allowing for both offline and online migration modes.
