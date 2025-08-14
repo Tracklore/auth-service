@@ -5,7 +5,6 @@ pydantic-settings
 python-jose
 passlib[bcrypt]
 sqlalchemy
-databases[asyncpg]
 python-dotenv
 alembic
 pytest

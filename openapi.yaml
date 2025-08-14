@@ -92,7 +92,7 @@ paths:
   /auth/refresh:
     post:
       summary: Refresh access token
-      description: Obtain a new access token using a valid refresh token.
+      description: Obtain a new access and refresh token using a valid refresh token. The old refresh token will be blacklisted.
       requestBody:
         required: true
         content:
@@ -122,7 +122,9 @@ paths:
   /auth/logout:
     post:
       summary: User logout
-      description: Log out the current user (typically handled client-side by removing tokens).
+      description: Log out the current user by blacklisting the provided access token. This is a server-side logout.
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Successfully logged out
@@ -135,11 +137,17 @@ paths:
                     type: string
                 example:
                   message: Logout successful
+        '401':
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /auth/me:
     get:
       summary: Get current user
-      description: Retrieve information about the currently authenticated user.
+      description: Retrieve information about the currently authenticated user. Requires a valid access token.
       security:
         - bearerAuth: []
       responses:
@@ -249,7 +257,7 @@ components:
           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
         refresh_token:
           type: string
-          description: JWT refresh token for obtaining new access tokens
+          description: JWT refresh token for obtaining new access tokens. This token has a longer expiration time.
           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
         token_type:
           type: string

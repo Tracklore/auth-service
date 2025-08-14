@@ -1,11 +1,12 @@
 # Authentication service logic (signup, login, refresh, logout)
-from datetime import timedelta
+from datetime import timedelta, datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.crud.user import get_user_by_username, get_user_by_email, create_user
 from app.utils.security import verify_password, create_access_token, create_refresh_token, decode_token
 from app.core.settings import settings
 from app.schemas.user import UserResponse, Token
 from fastapi import HTTPException, status
+from app.crud.token import add_token_to_blacklist, is_token_blacklisted
 
 
 async def signup(db: AsyncSession, username: str, email: str, password: str):
@@ -74,30 +75,54 @@ async def login(db: AsyncSession, username: str, password: str):
     )
 
 
-async def refresh_access_token(refresh_token: str):
+async def refresh_access_token(db: AsyncSession, refresh_token: str):
     """Refresh access token using refresh token."""
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid refresh token",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
     # Decode refresh token
     payload = decode_token(refresh_token)
+    token_type = payload.get("type")
+    if token_type != "refresh":
+        raise credentials_exception
+
+    jti = payload.get("jti")
+    if not jti:
+        raise credentials_exception
+
+    if await is_token_blacklisted(db, jti):
+        raise credentials_exception
+
     username = payload.get("sub")
     user_id = payload.get("user_id")
-    
+
     if not username or not user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid refresh token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    # Create new access token
+        raise credentials_exception
+
+    # Blacklist the old refresh token
+    exp = payload.get("exp")
+    if exp:
+        expires_at = datetime.fromtimestamp(exp, tz=timezone.utc)
+        await add_token_to_blacklist(db, jti, expires_at)
+
+    # Create new tokens
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
+    refresh_token_expires = timedelta(minutes=settings.refresh_token_expire_minutes)
+
     new_access_token = create_access_token(
-        data={"sub": username, "user_id": user_id}, 
+        data={"sub": username, "user_id": user_id},
         expires_delta=access_token_expires
     )
-    
+    new_refresh_token = create_refresh_token(
+        data={"sub": username, "user_id": user_id},
+        expires_delta=refresh_token_expires
+    )
+
     return Token(
         access_token=new_access_token,
-        refresh_token=refresh_token,  # In a real implementation, you might want to generate a new refresh token
+        refresh_token=new_refresh_token,
         token_type="bearer"
     )
 

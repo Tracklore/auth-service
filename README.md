@@ -60,7 +60,7 @@ A scalable and modular authentication microservice built with Python. Features i
 - `APP_NAME`: Application name (default: "Auth Service")
 - `APP_VERSION`: Application version (default: "1.0.0")
 - `DEBUG`: Debug mode (default: False)
-- `SECRET_KEY`: Secret key for JWT signing (required)
+- `SECRET_KEY`: Secret key for JWT signing (required). **Note:** For production, use a strong, randomly generated secret key. You can generate one using: `openssl rand -hex 32`
 - `DATABASE_URL`: Database connection URL (required)
 - `ACCESS_TOKEN_EXPIRE_MINUTES`: Access token expiration time in minutes (default: 1440)
 - `REFRESH_TOKEN_EXPIRE_MINUTES`: Refresh token expiration time in minutes (default: 43200)

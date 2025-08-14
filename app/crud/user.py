@@ -1,6 +1,8 @@
 # CRUD operations for User model
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.exc import IntegrityError
+from fastapi import HTTPException
 from app.models.user import User
 from app.utils.security import hash_password
 
@@ -32,6 +34,10 @@ async def create_user(db: AsyncSession, username: str, email: str, password: str
         hashed_password=hashed_password
     )
     db.add(db_user)
-    await db.commit()
-    await db.refresh(db_user)
+    try:
+        await db.commit()
+        await db.refresh(db_user)
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="Email or username already registered")
     return db_user
