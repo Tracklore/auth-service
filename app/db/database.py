@@ -18,6 +18,5 @@ Base = declarative_base()
 async def get_db():
     async with AsyncSessionLocal() as session:
         yield session
-        await session.commit()
 # This code sets up the database connection using SQLAlchemy's async capabilities.
 
