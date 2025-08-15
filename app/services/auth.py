@@ -7,7 +7,7 @@ from app.core.settings import settings
 from app.schemas.user import UserResponse, Token
 from fastapi import HTTPException, status
 from app.crud.token import add_token_to_blacklist, is_token_blacklisted
-
+from app.services.message_queue import message_queue_client
 
 async def signup(db: AsyncSession, username: str, email: str, password: str):
     """User signup service."""
@@ -28,13 +28,23 @@ async def signup(db: AsyncSession, username: str, email: str, password: str):
         )
 
     user = await create_user(db, username, email, password)
+    
+    # Prepare user data for the event
+    user_data = {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email
+    }
+    
+    # Publish UserCreated event to message queue
+    await message_queue_client.publish_user_created_event(user_data)
+    
     return UserResponse(
         id=user.id,
         username=user.username,
         email=user.email,
         is_active=user.is_active
     )
-
 
 async def login(db: AsyncSession, username: str, password: str):
     """User login service."""
@@ -73,7 +83,6 @@ async def login(db: AsyncSession, username: str, password: str):
         refresh_token=refresh_token,
         token_type="bearer"
     )
-
 
 async def refresh_access_token(db: AsyncSession, refresh_token: str):
     """Refresh access token using refresh token."""
@@ -125,7 +134,6 @@ async def refresh_access_token(db: AsyncSession, refresh_token: str):
         refresh_token=new_refresh_token,
         token_type="bearer"
     )
-
 
 # Note: Logout is typically handled on the client side by removing the tokens
 # For server-side logout, we would need to maintain a token blacklist

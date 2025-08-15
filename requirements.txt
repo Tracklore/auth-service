@@ -10,3 +10,4 @@ alembic
 pytest
 httpx
 email-validator
+aiormq

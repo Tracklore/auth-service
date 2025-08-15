@@ -12,5 +12,6 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 60 * 24 # 24 hours
     refresh_token_expire_minutes: int = 60 * 24 * 30 # 30 days
     algorithm: str = "HS256"
+    rabbitmq_url: str = "amqp://guest:guest@localhost/"
 
 settings = Settings()

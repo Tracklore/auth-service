@@ -18,6 +18,23 @@ services:
       timeout: 5s
       retries: 5
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
   auth-service:
     build: .
     container_name: auth-service
@@ -32,8 +49,11 @@ services:
       - ACCESS_TOKEN_EXPIRE_MINUTES=1440
       - REFRESH_TOKEN_EXPIRE_MINUTES=43200
       - ALGORITHM=HS256
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
     depends_on:
       auth-db:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/"]
@@ -44,3 +64,4 @@ services:
 
 volumes:
   postgres_data:
+  rabbitmq_data:

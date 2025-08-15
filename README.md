@@ -10,10 +10,12 @@ A scalable and modular authentication microservice built with Python. Features i
 - Docker support for easy deployment
 - Health checks for container orchestration
 - Environment-based configuration
+- Message queue integration for microservice communication
 
 ## Prerequisites
 - Python 3.11+
 - PostgreSQL database
+- RabbitMQ message broker
 - Docker (for containerized deployment)
 - Docker Compose (for multi-container setups)
 
@@ -46,7 +48,7 @@ A scalable and modular authentication microservice built with Python. Features i
    docker build -t auth-service .
    ```
 
-2. Use Docker Compose for development (includes PostgreSQL):
+2. Use Docker Compose for development (includes PostgreSQL and RabbitMQ):
    ```bash
    docker compose up -d
    ```
@@ -65,6 +67,7 @@ A scalable and modular authentication microservice built with Python. Features i
 - `ACCESS_TOKEN_EXPIRE_MINUTES`: Access token expiration time in minutes (default: 1440)
 - `REFRESH_TOKEN_EXPIRE_MINUTES`: Refresh token expiration time in minutes (default: 43200)
 - `ALGORITHM`: JWT algorithm (default: "HS256")
+- `RABBITMQ_URL`: RabbitMQ connection URL (default: "amqp://guest:guest@localhost/")
 
 ## API Endpoints
 - `POST /auth/signup`: User registration
@@ -73,6 +76,14 @@ A scalable and modular authentication microservice built with Python. Features i
 - `POST /auth/logout`: User logout
 - `GET /auth/me`: Get current user information
 - `GET /`: Health check
+
+## Message Queue Integration
+The auth-service now publishes "UserCreated" events to a RabbitMQ message queue when a new user is created. This allows other microservices (like user-service) to react to new user registrations without shared databases.
+
+When a user signs up:
+1. The user is created in the auth-service database
+2. A "UserCreated" event is published to the message queue
+3. Other services can subscribe to this queue and react to new user registrations
 
 ## Testing
 Run tests with:
@@ -95,7 +106,7 @@ docker compose exec auth-service alembic upgrade head
 
 ### Kubernetes Deployment
 For Kubernetes deployment, you would need to:
-1. Create Kubernetes manifests for the service and database
+1. Create Kubernetes manifests for the service, database, and message broker
 2. Use Kubernetes secrets for sensitive environment variables
 3. Configure proper resource limits and health checks
 4. Set up ingress for external access
