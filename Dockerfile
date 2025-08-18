@@ -15,7 +15,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN apt-get update && apt-get install -y \
     gcc \
     curl \
+    git \
     && rm -rf /var/lib/apt/lists/*
+
+# Install shared_libs package from GitHub
+RUN pip install --no-cache-dir git+https://github.com/Tracklore/shared_libs.git
+
+# Debug step: Verify shared_libs installation
+RUN pip show shared_libs
 
 # Copy requirements file
 COPY requirements.txt .
@@ -29,6 +36,9 @@ RUN adduser --disabled-password --gecos '' appuser
 
 # Copy application code
 COPY . .
+
+# Reinstall shared_libs after copying code to ensure it's in the correct environment
+RUN pip install --no-cache-dir git+https://github.com/Tracklore/shared_libs.git
 
 # Change ownership of the app directory to the non-root user
 RUN chown -R appuser:appuser /app

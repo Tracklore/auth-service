@@ -2,7 +2,7 @@
 from datetime import timedelta, datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.crud.user import get_user_by_username, get_user_by_email, create_user
-from app.utils.security import verify_password, create_access_token, create_refresh_token, decode_token
+from app.utils.security import verify_password, create_access_token_wrapper, create_refresh_token_wrapper, decode_token_wrapper
 from app.core.settings import settings
 from app.schemas.user import UserResponse, Token
 from fastapi import HTTPException, status
@@ -69,11 +69,11 @@ async def login(db: AsyncSession, username: str, password: str):
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
     refresh_token_expires = timedelta(minutes=settings.refresh_token_expire_minutes)
     
-    access_token = create_access_token(
+    access_token = create_access_token_wrapper(
         data={"sub": user.username, "user_id": user.id}, 
         expires_delta=access_token_expires
     )
-    refresh_token = create_refresh_token(
+    refresh_token = create_refresh_token_wrapper(
         data={"sub": user.username, "user_id": user.id}, 
         expires_delta=refresh_token_expires
     )
@@ -92,7 +92,7 @@ async def refresh_access_token(db: AsyncSession, refresh_token: str):
         headers={"WWW-Authenticate": "Bearer"},
     )
     # Decode refresh token
-    payload = decode_token(refresh_token)
+    payload = decode_token_wrapper(refresh_token)
     token_type = payload.get("type")
     if token_type != "refresh":
         raise credentials_exception
@@ -120,11 +120,11 @@ async def refresh_access_token(db: AsyncSession, refresh_token: str):
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
     refresh_token_expires = timedelta(minutes=settings.refresh_token_expire_minutes)
 
-    new_access_token = create_access_token(
+    new_access_token = create_access_token_wrapper(
         data={"sub": username, "user_id": user_id},
         expires_delta=access_token_expires
     )
-    new_refresh_token = create_refresh_token(
+    new_refresh_token = create_refresh_token_wrapper(
         data={"sub": username, "user_id": user_id},
         expires_delta=refresh_token_expires
     )

@@ -1,7 +1,12 @@
 # Unit tests for the authentication service
 import pytest
 from unittest.mock import AsyncMock, patch
-from app.utils.security import hash_password, verify_password, create_access_token, create_refresh_token
+from app.utils.security import (
+    hash_password, 
+    verify_password, 
+    create_access_token_wrapper, 
+    create_refresh_token_wrapper
+)
 from datetime import timedelta
 from jose import jwt
 from app.core.settings import settings
@@ -27,7 +32,7 @@ async def test_password_hashing():
 async def test_access_token_creation():
     """Test access token creation."""
     data = {"sub": "testuser", "user_id": 1}
-    token = create_access_token(data)
+    token = create_access_token_wrapper(data)
     
     # Decode the token to verify its contents
     decoded = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
@@ -41,7 +46,7 @@ async def test_access_token_creation():
 async def test_refresh_token_creation():
     """Test refresh token creation."""
     data = {"sub": "testuser", "user_id": 1}
-    token = create_refresh_token(data)
+    token = create_refresh_token_wrapper(data)
     
     # Decode the token to verify its contents
     decoded = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
@@ -58,8 +63,8 @@ async def test_token_expiration():
     expires = timedelta(minutes=30)
     
     # Create tokens with custom expiration
-    access_token = create_access_token(data, expires)
-    refresh_token = create_refresh_token(data, expires)
+    access_token = create_access_token_wrapper(data, expires)
+    refresh_token = create_refresh_token_wrapper(data, expires)
     
     # Decode tokens
     access_decoded = jwt.decode(access_token, settings.secret_key, algorithms=[settings.algorithm])
