@@ -3,11 +3,14 @@ from datetime import timedelta, datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.crud.user import get_user_by_username, get_user_by_email, create_user
 from app.utils.security import verify_password, create_access_token_wrapper, create_refresh_token_wrapper, decode_token_wrapper
-from app.core.settings import settings
+from shared_libs import SharedSettings
 from app.schemas.user import UserResponse, Token
 from fastapi import HTTPException, status
 from app.crud.token import add_token_to_blacklist, is_token_blacklisted
 from app.services.message_queue import message_queue_client
+
+# Load settings
+settings = SharedSettings()
 
 async def signup(db: AsyncSession, username: str, email: str, password: str):
     """User signup service."""
@@ -66,15 +69,15 @@ async def login(db: AsyncSession, username: str, password: str):
         )
     
     # Create tokens
-    access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
-    refresh_token_expires = timedelta(minutes=settings.refresh_token_expire_minutes)
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    refresh_token_expires = timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
     
     access_token = create_access_token_wrapper(
-        data={"sub": user.username, "user_id": user.id}, 
+        data={"sub": user.username, "user_id": user.id},
         expires_delta=access_token_expires
     )
     refresh_token = create_refresh_token_wrapper(
-        data={"sub": user.username, "user_id": user.id}, 
+        data={"sub": user.username, "user_id": user.id},
         expires_delta=refresh_token_expires
     )
     
@@ -117,8 +120,8 @@ async def refresh_access_token(db: AsyncSession, refresh_token: str):
         await add_token_to_blacklist(db, jti, expires_at)
 
     # Create new tokens
-    access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
-    refresh_token_expires = timedelta(minutes=settings.refresh_token_expire_minutes)
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    refresh_token_expires = timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
 
     new_access_token = create_access_token_wrapper(
         data={"sub": username, "user_id": user_id},

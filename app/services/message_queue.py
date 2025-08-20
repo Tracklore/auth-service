@@ -2,7 +2,10 @@ import asyncio
 import json
 import aiormq
 from typing import Dict, Any
-from app.core.settings import settings
+from shared_libs.settings import SharedSettings
+
+# Load settings
+settings = SharedSettings()
 
 class MessageQueueClient:
     def __init__(self):

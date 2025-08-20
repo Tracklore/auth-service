@@ -11,3 +11,4 @@ pytest
 httpx
 email-validator
 aiormq
+asyncpg

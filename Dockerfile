@@ -18,27 +18,27 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Install shared_libs package from GitHub
-RUN pip install --no-cache-dir git+https://github.com/Tracklore/shared_libs.git
-
-# Debug step: Verify shared_libs installation
-RUN pip show shared_libs
-
 # Copy requirements file
-COPY requirements.txt .
+COPY auth-service/requirements.txt requirements.txt
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
+# Copy shared_libs directory
+COPY shared_libs /app/shared_libs
+
+# Install shared_libs package locally
+RUN pip install --no-cache-dir /app/shared_libs
+
+# Debug step: Verify shared_libs installation
+RUN pip show shared_libs
+
 # Create a non-root user
 RUN adduser --disabled-password --gecos '' appuser
 
 # Copy application code
-COPY . .
-
-# Reinstall shared_libs after copying code to ensure it's in the correct environment
-RUN pip install --no-cache-dir git+https://github.com/Tracklore/shared_libs.git
+COPY auth-service/ .
 
 # Change ownership of the app directory to the non-root user
 RUN chown -R appuser:appuser /app
