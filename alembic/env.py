@@ -1,13 +1,19 @@
 import asyncio
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared-libs'))
 from logging.config import fileConfig
 
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy import pool
 from alembic import context
 
-from app.core.settings import settings
+from shared_libs import SharedSettings
 from app.db.database import Base
 from app.models import user  # import all models so Alembic can detect them
+
+# Load settings
+settings = SharedSettings()
 
 # Alembic Config object
 config = context.config

@@ -25,11 +25,12 @@ async def get_user_by_email(db: AsyncSession, email: str) -> User:
     return result.scalar_one_or_none()
 
 
-async def create_user(db: AsyncSession, username: str, email: str, password: str) -> User:
+async def create_user(db: AsyncSession, username: str, name: str, email: str, password: str) -> User:
     """Create a new user."""
     hashed_password = hash_password(password)
     db_user = User(
         username=username,
+        name=name,
         email=email,
         hashed_password=hashed_password
     )

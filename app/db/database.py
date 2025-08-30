@@ -7,7 +7,7 @@ import os
 # Load settings
 settings = SharedSettings()
 
-DATABASE_URL = settings.DATABASE_URL
+DATABASE_URL = settings.database_url
 
 engine = create_async_engine(DATABASE_URL, echo=True)
 AsyncSessionLocal = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)

@@ -9,9 +9,12 @@ from app.utils.security import (
 )
 from datetime import timedelta
 from jose import jwt
-from app.core.settings import settings
+from shared_libs.settings import SharedSettings
 from app.services.auth import signup
 from sqlalchemy.ext.asyncio import AsyncSession
+
+# Load settings
+settings = SharedSettings()
 
 @pytest.mark.asyncio
 async def test_password_hashing():
