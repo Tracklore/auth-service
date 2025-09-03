@@ -1,8 +1,16 @@
 from fastapi import FastAPI
 from app.api.routes import router as auth_router
 from app.services.message_queue import message_queue_client
+from app.core.config import get_settings
 
-app = FastAPI()
+# Get settings instance
+settings = get_settings()
+
+app = FastAPI(
+    title=settings.app_name,
+    version=settings.app_version,
+    debug=settings.debug
+)
 
 # Include the authentication routes
 app.include_router(auth_router, prefix="/auth", tags=["auth"])

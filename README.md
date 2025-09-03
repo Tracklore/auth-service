@@ -59,15 +59,26 @@ A scalable and modular authentication microservice built with Python. Features i
    ```
 
 ## Environment Variables
+The service supports multiple environments through environment-specific files:
+- `.env.development` - Development environment settings
+- `.env.staging` - Staging environment settings
+- `.env.production` - Production environment settings
+- `.env.testing` - Testing environment settings
+
+Each environment file should contain the following variables:
+
 - `APP_NAME`: Application name (default: "Auth Service")
 - `APP_VERSION`: Application version (default: "1.0.0")
 - `DEBUG`: Debug mode (default: False)
+- `ENVIRONMENT`: Environment name (development, staging, production, testing)
 - `SECRET_KEY`: Secret key for JWT signing (required). **Note:** For production, use a strong, randomly generated secret key. You can generate one using: `openssl rand -hex 32`
 - `DATABASE_URL`: Database connection URL (required)
 - `ACCESS_TOKEN_EXPIRE_MINUTES`: Access token expiration time in minutes (default: 1440)
 - `REFRESH_TOKEN_EXPIRE_MINUTES`: Refresh token expiration time in minutes (default: 43200)
 - `ALGORITHM`: JWT algorithm (default: "HS256")
 - `RABBITMQ_URL`: RabbitMQ connection URL (default: "amqp://guest:guest@localhost/")
+
+To use a specific environment, set the ENVIRONMENT variable or ensure the appropriate .env file is loaded.
 
 ## API Endpoints
 - `POST /auth/signup`: User registration
