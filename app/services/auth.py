@@ -12,7 +12,7 @@ from app.services.message_queue import message_queue_client
 # Load settings
 settings = SharedSettings()
 
-async def signup(db: AsyncSession, username: str, email: str, password: str):
+async def signup(db: AsyncSession, username: str, name: str, email: str, password: str):
     """User signup service."""
     # Check if user already exists
     existing_user = await get_user_by_username(db, username)
@@ -30,12 +30,13 @@ async def signup(db: AsyncSession, username: str, email: str, password: str):
             detail="Email already registered"
         )
 
-    user = await create_user(db, username, email, password)
+    user = await create_user(db, username, name, email, password)
     
     # Prepare user data for the event
     user_data = {
         "id": user.id,
         "username": user.username,
+        "name": user.name,
         "email": user.email
     }
     
@@ -45,6 +46,7 @@ async def signup(db: AsyncSession, username: str, email: str, password: str):
     return UserResponse(
         id=user.id,
         username=user.username,
+        name=user.name,
         email=user.email,
         is_active=user.is_active
     )
@@ -69,8 +71,8 @@ async def login(db: AsyncSession, username: str, password: str):
         )
     
     # Create tokens
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    refresh_token_expires = timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
+    refresh_token_expires = timedelta(minutes=settings.refresh_token_expire_minutes)
     
     access_token = create_access_token_wrapper(
         data={"sub": user.username, "user_id": user.id},
@@ -116,12 +118,13 @@ async def refresh_access_token(db: AsyncSession, refresh_token: str):
     # Blacklist the old refresh token
     exp = payload.get("exp")
     if exp:
-        expires_at = datetime.fromtimestamp(exp, tz=timezone.utc)
+        # Convert to naive datetime for database storage
+        expires_at = datetime.fromtimestamp(exp, tz=timezone.utc).replace(tzinfo=None)
         await add_token_to_blacklist(db, jti, expires_at)
 
     # Create new tokens
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    refresh_token_expires = timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
+    refresh_token_expires = timedelta(minutes=settings.refresh_token_expire_minutes)
 
     new_access_token = create_access_token_wrapper(
         data={"sub": username, "user_id": user_id},

@@ -26,7 +26,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = decode_token(token, settings.SECRET_KEY, settings.ALGORITHM)
+        payload = decode_token(token, settings.secret_key, settings.algorithm)
         token_type = payload.get("type")
         if token_type != "access":
             raise credentials_exception
@@ -43,22 +43,22 @@ def create_access_token_wrapper(data: dict, expires_delta: Optional[timedelta] =
     """Create a new access token using shared utility."""
     return create_access_token(
         data,
-        settings.SECRET_KEY,
-        settings.ALGORITHM,
+        settings.secret_key,
+        settings.algorithm,
         expires_delta,
-        settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        settings.access_token_expire_minutes
     )
 
 def create_refresh_token_wrapper(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """Create a new refresh token using shared utility."""
     return create_refresh_token(
         data,
-        settings.SECRET_KEY,
-        settings.ALGORITHM,
+        settings.secret_key,
+        settings.algorithm,
         expires_delta,
-        settings.REFRESH_TOKEN_EXPIRE_MINUTES
+        settings.refresh_token_expire_minutes
     )
 
 def decode_token_wrapper(token: str) -> dict:
     """Decode a JWT token using shared utility."""
-    return decode_token(token, settings.SECRET_KEY, settings.ALGORITHM)
+    return decode_token(token, settings.secret_key, settings.algorithm)

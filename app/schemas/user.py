@@ -6,6 +6,7 @@ from typing import Optional
 class UserBase(BaseModel):
     """Base user schema with common fields."""
     username: str
+    name: Optional[str] = None
     email: EmailStr
 
 
